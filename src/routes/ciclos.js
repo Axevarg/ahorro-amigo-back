@@ -1,5 +1,6 @@
 import { Router } from "express";
 import pool from "../db.js";
+import { generarSemanas } from "../utils/generarSemanas.js";
 
 const router = Router();
 
@@ -29,7 +30,6 @@ router.post("/", async (req, res) => {
   }
 });
 
-
 router.get("/", async (req, res) => {
   try {
     const result = await pool.query(
@@ -40,7 +40,6 @@ router.get("/", async (req, res) => {
     res.status(500).json({ message: "Error obteniendo ciclos" });
   }
 });
-
 
 router.get("/:id", async (req, res) => {
   try {
@@ -59,7 +58,6 @@ router.get("/:id", async (req, res) => {
     res.status(500).json({ message: "Error obteniendo ciclo" });
   }
 });
-
 
 router.put("/:id", async (req, res) => {
   try {
@@ -104,6 +102,38 @@ router.put("/:id", async (req, res) => {
   }
 });
 
+router.put("/:id/activar", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // 1️⃣ obtener ciclo
+    const cicloRes = await pool.query(
+      "SELECT * FROM ciclos WHERE id=$1",
+      [id]
+    );
+
+    const ciclo = cicloRes.rows[0];
+    if (!ciclo) return res.status(404).json({ message: "Ciclo no existe" });
+
+    if (ciclo.estado !== "configuracion")
+      return res.status(400).json({ message: "El ciclo ya está activo o cerrado" });
+
+    // 2️⃣ activar ciclo
+    await pool.query(
+      "UPDATE ciclos SET estado='activo' WHERE id=$1",
+      [id]
+    );
+
+    // 3️⃣ generar semanas automáticamente
+    await generarSemanas(ciclo);
+
+    res.json({ message: "Ciclo activado y semanas generadas 🚀" });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error activando ciclo" });
+  }
+});
 
 router.delete("/:id", async (req, res) => {
   try {
@@ -116,5 +146,6 @@ router.delete("/:id", async (req, res) => {
     res.status(500).json({ message: "Error eliminando ciclo" });
   }
 });
+
 
 export default router;

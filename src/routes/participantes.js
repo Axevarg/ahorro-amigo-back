@@ -40,6 +40,31 @@ router.post("/", async (req, res) => {
 });
 
 
+router.get("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(
+      `SELECT 
+        p.*,
+        u.nombre,
+        u.telefono,
+        u.email
+      FROM participantes p
+      JOIN usuarios u ON u.id = p.usuario_id
+      WHERE p.id = $1`,
+      [id]
+    );
+
+    if (result.rows.length === 0)
+      return res.status(404).json({ message: "Participante no encontrado" });
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ message: "Error obteniendo participante" });
+  }
+});
+
 router.get("/ciclo/:ciclo_id", async (req, res) => {
   try {
     const { ciclo_id } = req.params;
@@ -113,5 +138,8 @@ router.delete("/:id", async (req, res) => {
     res.status(500).json({ message: "Error eliminando participante" });
   }
 });
+
+
+
 
 export default router;

@@ -6,6 +6,7 @@ import testRoutes from "./routes/test.js";
 import ciclosRoutes from "./routes/ciclos.js";
 import participantesRoutes from "./routes/participantes.js";
 import pagosRoutes from "./routes/pagos.js";
+import dashboardRoutes from "./routes/dashboard.js";
 
 
 dotenv.config();
@@ -20,6 +21,7 @@ app.use("/api/test", testRoutes);
 app.use("/ciclos", ciclosRoutes);
 app.use("/api/participantes", participantesRoutes);
 app.use("/api/pagos", pagosRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 
 app.get("/", (req, res) => {

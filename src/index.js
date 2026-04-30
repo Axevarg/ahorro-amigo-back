@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import authRoutes from "./routes/auth.js";
 import testRoutes from "./routes/test.js";
 import ciclosRoutes from "./routes/ciclos.js";
+import participantesRoutes from "./routes/participantes.js";
 
 
 dotenv.config();
@@ -16,6 +17,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/test", testRoutes);
 app.use("/ciclos", ciclosRoutes);
+app.use("/api/participantes", participantesRoutes);
 
 
 app.get("/", (req, res) => {

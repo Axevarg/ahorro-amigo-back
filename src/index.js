@@ -9,6 +9,7 @@ import pagosRoutes from "./routes/pagos.js";
 import dashboardRoutes from "./routes/dashboard.js";
 import prestamosRoutes from "./routes/prestamos.js";
 import interesesRoutes from "./routes/intereses.js";
+import cierreCicloRoutes from "./routes/cierreCiclo.js";
 
 
 dotenv.config();
@@ -26,6 +27,7 @@ app.use("/api/pagos", pagosRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/prestamos", prestamosRoutes);
 app.use("/api/intereses", interesesRoutes);
+app.use("/api", cierreCicloRoutes);
 
 
 app.get("/", (req, res) => {

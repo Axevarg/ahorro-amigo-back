@@ -7,6 +7,8 @@ import ciclosRoutes from "./routes/ciclos.js";
 import participantesRoutes from "./routes/participantes.js";
 import pagosRoutes from "./routes/pagos.js";
 import dashboardRoutes from "./routes/dashboard.js";
+import prestamosRoutes from "./routes/prestamos.js";
+import interesesRoutes from "./routes/intereses.js";
 
 
 dotenv.config();
@@ -22,6 +24,8 @@ app.use("/ciclos", ciclosRoutes);
 app.use("/api/participantes", participantesRoutes);
 app.use("/api/pagos", pagosRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/prestamos", prestamosRoutes);
+app.use("/api/intereses", interesesRoutes);
 
 
 app.get("/", (req, res) => {

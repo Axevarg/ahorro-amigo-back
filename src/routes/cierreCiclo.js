@@ -22,9 +22,11 @@ router.post("/ciclos/:id/cerrar", async (req, res) => {
 
     // 2️⃣ Obtener total de intereses generados por préstamos
     const intereses = await client.query(
-      `SELECT COALESCE(SUM(monto_interes),0) AS total
-       FROM intereses_generados
-       WHERE ciclo_id=$1`,
+      `SELECT COALESCE(SUM(i.monto_interes),0) AS total
+        FROM intereses_generados i
+        JOIN prestamos pr ON pr.id = i.prestamo_id
+        JOIN participantes pa ON pa.id = pr.participante_id
+        WHERE pa.ciclo_id = $1`,
       [id]
     );
 

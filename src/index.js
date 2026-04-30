@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import authRoutes from "./routes/auth.js";
 import testRoutes from "./routes/test.js";
+import ciclosRoutes from "./routes/ciclos.js";
 
 
 dotenv.config();
@@ -14,6 +15,7 @@ app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/test", testRoutes);
+app.use("/ciclos", ciclosRoutes);
 
 
 app.get("/", (req, res) => {

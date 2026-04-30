@@ -6,19 +6,20 @@ const router = Router();
 router.post("/", async (req, res) => {
   try {
     const {
-      nombre,
-      monto_semanal,
-      total_semanas,
+      anio,
       fecha_inicio,
-      fecha_fin
+      fecha_fin,
+      monto_por_numero,
+      tasa_interes_mensual,
+      semanas_total
     } = req.body;
 
     const result = await pool.query(
       `INSERT INTO ciclos 
-      (nombre, monto_semanal, total_semanas, fecha_inicio, fecha_fin)
-      VALUES ($1,$2,$3,$4,$5)
+      (anio, fecha_inicio, fecha_fin, monto_por_numero, tasa_interes_mensual, semanas_total)
+      VALUES ($1,$2,$3,$4,$5,$6)
       RETURNING *`,
-      [nombre, monto_semanal, total_semanas, fecha_inicio, fecha_fin]
+      [anio, fecha_inicio, fecha_fin, monto_por_numero, tasa_interes_mensual, semanas_total]
     );
 
     res.json(result.rows[0]);
@@ -32,7 +33,7 @@ router.post("/", async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT * FROM ciclos ORDER BY id DESC"
+      "SELECT * FROM ciclos ORDER BY anio DESC"
     );
     res.json(result.rows);
   } catch (error) {
@@ -63,26 +64,38 @@ router.get("/:id", async (req, res) => {
 router.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
+
     const {
-      nombre,
-      monto_semanal,
-      total_semanas,
+      anio,
       fecha_inicio,
       fecha_fin,
+      monto_por_numero,
+      tasa_interes_mensual,
+      semanas_total,
       estado
     } = req.body;
 
     const result = await pool.query(
       `UPDATE ciclos SET
-        nombre = $1,
-        monto_semanal = $2,
-        total_semanas = $3,
-        fecha_inicio = $4,
-        fecha_fin = $5,
-        estado = $6
-      WHERE id = $7
+        anio = $1,
+        fecha_inicio = $2,
+        fecha_fin = $3,
+        monto_por_numero = $4,
+        tasa_interes_mensual = $5,
+        semanas_total = $6,
+        estado = $7
+      WHERE id = $8
       RETURNING *`,
-      [nombre, monto_semanal, total_semanas, fecha_inicio, fecha_fin, estado, id]
+      [
+        anio,
+        fecha_inicio,
+        fecha_fin,
+        monto_por_numero,
+        tasa_interes_mensual,
+        semanas_total,
+        estado,
+        id
+      ]
     );
 
     res.json(result.rows[0]);

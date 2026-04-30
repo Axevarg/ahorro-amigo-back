@@ -3,7 +3,7 @@ import pool from "../db.js";
 
 const router = Router();
 
-router.get("/", async (req, res) => {
+router.get("/admin", async (req, res) => {
   try {
     // 🔹 ciclo activo
     const cicloRes = await pool.query(
@@ -89,17 +89,32 @@ router.get("/", async (req, res) => {
       ORDER BY s.numero
     `,[ciclo_id]);
 
-    res.json({
-      ciclo,
-      total_recaudado: recaudado.rows[0].total,
-      participantes: participantes.rows[0].count,
-      prestamos_activos: prestamos.rows[0].count,
-      semanas_transcurridas: semanasTrans.rows[0].count,
-      semanas_totales: ciclo.semanas_total,
-      intereses_generados: intereses.rows[0].total,
-      morosos_semana_actual: morosos,
-      grafica_recaudacion: grafica.rows
-    });
+res.json({
+  total_recaudado: Number(recaudado.rows[0].total),
+
+  participantes_activos: Number(participantes.rows[0].count),
+
+  prestamos_vigentes: Number(prestamos.rows[0].count),
+
+  semanas_transcurridas: Number(semanasTrans.rows[0].count),
+
+  semanas_total: Number(ciclo.semanas_total),
+
+  intereses_acumulados: Number(intereses.rows[0].total),
+
+  // 📊 formato para Recharts
+  depositos: grafica.rows.map(r => ({
+    semana: Number(r.numero),
+    acumulado: Number(r.total)
+  })),
+
+  // 😈 formato UI
+  no_pagaron: morosos.map(m => ({
+    id: m.participante_id,
+    nombre: m.nombre,
+    ahorro_semanal: ciclo.aportacion_semanal ?? 0
+  }))
+});
 
   } catch (error) {
     console.error(error);

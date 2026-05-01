@@ -139,4 +139,58 @@ router.get("/estado/:participante_id", async (req, res) => {
 });
 
 
+// GET quienes deben pagar la semana actual
+router.get("/pendientes/:ciclo_id", async (req, res) => {
+  try {
+    const { ciclo_id } = req.params;
+
+    // semana actual del ciclo
+    const semanaActual = await pool.query(`
+      SELECT id, numero
+      FROM semanas
+      WHERE ciclo_id = $1
+      AND CURRENT_DATE BETWEEN fecha_inicio AND fecha_fin
+      LIMIT 1
+    `,[ciclo_id]);
+
+    if (!semanaActual.rows.length)
+      return res.status(404).json({ message: "No hay semana activa" });
+
+    const semana = semanaActual.rows[0];
+
+    // participantes + numeros + pago de esta semana
+    const result = await pool.query(`
+      SELECT
+        p.id AS participante_id,
+        u.nombre,
+        p.numeros,
+        p.ahorro_semanal,
+        pa.id AS pago_id
+      FROM participantes p
+      JOIN usuarios u ON u.id = p.usuario_id
+      LEFT JOIN pagos_ahorro pa
+        ON pa.participante_id = p.id
+        AND pa.semana_id = $1
+      WHERE p.ciclo_id = $2
+      ORDER BY u.nombre
+    `,[semana.id, ciclo_id]);
+
+    const data = result.rows.map(r => ({
+      participante_id: r.participante_id,
+      nombre: r.nombre,
+      numeros: r.numeros,
+      monto_semanal: Number(r.ahorro_semanal),
+      estado: r.pago_id ? "pagó" : "pendiente",
+      semana_id: semana.id,
+      semana_numero: semana.numero
+    }));
+
+    res.json(data);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error obteniendo pendientes" });
+  }
+});
+
 export default router;

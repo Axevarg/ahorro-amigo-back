@@ -31,11 +31,11 @@ app.use("/api/pagos", pagosRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/prestamos", prestamosRoutes);
 app.use("/api/intereses", interesesRoutes);
-app.use("/api", cierreCicloRoutes);
-app.use("/api", repartoResumenRoutes);
-app.use("/api", repartoPDFRoutes);
-app.use("/api", miCuentaRoutes);
-app.use("/api", reportesParticipante);
+app.use("/api/cierre", cierreCicloRoutes);
+app.use("/api/reparto", repartoResumenRoutes);
+app.use("/api/reparto", repartoPDFRoutes);
+app.use("/api/mi-cuenta", miCuentaRoutes);
+app.use("/api/reportes", reportesParticipante);
 
 app.get("/", (req, res) => {
   res.json({ ok: true, msg: "API Caja de Ahorro funcionando 🚀" });

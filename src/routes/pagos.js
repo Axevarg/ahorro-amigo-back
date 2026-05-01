@@ -33,6 +33,34 @@ router.post("/", async (req, res) => {
 });
 
 
+router.get("/ciclo/:ciclo_id", async (req, res) => {
+  try {
+    const { ciclo_id } = req.params;
+
+    const result = await pool.query(`
+      SELECT
+        pa.id,
+        u.nombre,
+        s.numero AS semana_numero,
+        pa.monto,
+        CASE WHEN pa.id IS NOT NULL THEN 'pagó' ELSE 'pendiente' END AS estado
+      FROM participantes p
+      JOIN usuarios u ON u.id = p.usuario_id
+      JOIN semanas s ON s.ciclo_id = p.ciclo_id
+      LEFT JOIN pagos_ahorro pa 
+        ON pa.participante_id = p.id 
+        AND pa.semana_id = s.id
+      WHERE p.ciclo_id = $1
+      ORDER BY s.numero
+    `, [ciclo_id]);
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error obteniendo pagos del ciclo" });
+  }
+});
+
 router.get("/participante/:id", async (req, res) => {
   const { id } = req.params;
 

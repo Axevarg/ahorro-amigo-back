@@ -23,18 +23,14 @@ router.post("/ciclos/:id/cerrar", async (req, res) => {
     // 2️⃣ Obtener total de intereses generados por préstamos
     const intereses = await client.query(
       `SELECT COALESCE(SUM(i.monto_interes),0) AS total
-        FROM intereses_generados i
-        JOIN prestamos pr ON pr.id = i.prestamo_id
-        JOIN participantes pa ON pa.id = pr.participante_id
-        WHERE pa.ciclo_id = $1`,
+       FROM intereses_generados i
+       JOIN prestamos pr ON pr.id = i.prestamo_id
+       JOIN participantes pa ON pa.id = pr.participante_id
+       WHERE pa.ciclo_id = $1`,
       [id]
     );
 
     const totalIntereses = Number(intereses.rows[0].total);
-
-    if (totalIntereses === 0) {
-      throw new Error("No existen intereses generados para este ciclo");
-    }
 
     // 3️⃣ Obtener participantes elegibles para reparto
     const participantesRes = await client.query(
@@ -48,30 +44,36 @@ router.post("/ciclos/:id/cerrar", async (req, res) => {
 
     const participantes = participantesRes.rows;
 
-    if (participantes.length === 0) {
-      throw new Error("No hay participantes elegibles para reparto");
-    }
+    // 🔥 NUEVA LOGICA FLEXIBLE
+    let resumenReparto = null;
 
-    // 4️⃣ Calcular total de números participantes
-    const totalNumeros = participantes.reduce(
-      (acc, p) => acc + p.numeros, 0
-    );
-
-    const gananciaPorNumero = totalIntereses / totalNumeros;
-
-    // 5️⃣ Guardar reparto en tabla reparto_intereses
-    for (const p of participantes) {
-      const ganancia = gananciaPorNumero * p.numeros;
-
-      await client.query(
-        `INSERT INTO reparto_intereses
-        (ciclo_id, participante_id, numeros, monto_interes)
-        VALUES ($1,$2,$3,$4)`,
-        [id, p.id, p.numeros, ganancia]
+    if (totalIntereses > 0 && participantes.length > 0) {
+      const totalNumeros = participantes.reduce(
+        (acc, p) => acc + p.numeros, 0
       );
+
+      const gananciaPorNumero = totalIntereses / totalNumeros;
+
+      for (const p of participantes) {
+        const ganancia = gananciaPorNumero * p.numeros;
+
+        await client.query(
+          `INSERT INTO reparto_intereses
+           (ciclo_id, participante_id, numeros, monto_interes)
+           VALUES ($1,$2,$3,$4)`,
+          [id, p.id, p.numeros, ganancia]
+        );
+      }
+
+      resumenReparto = {
+        totalIntereses,
+        totalParticipantes: participantes.length,
+        totalNumeros,
+        gananciaPorNumero
+      };
     }
 
-    // 6️⃣ Cerrar ciclo 🔒
+    // 4️⃣ Cerrar ciclo 🔒 SIEMPRE
     await client.query(
       "UPDATE ciclos SET estado='cerrado' WHERE id=$1",
       [id]
@@ -81,12 +83,8 @@ router.post("/ciclos/:id/cerrar", async (req, res) => {
 
     res.json({
       mensaje: "🎉 Ciclo cerrado correctamente",
-      resumen: {
-        totalIntereses,
-        totalParticipantes: participantes.length,
-        totalNumeros,
-        gananciaPorNumero
-      }
+      huboReparto: totalIntereses > 0 && participantes.length > 0,
+      resumen: resumenReparto
     });
 
   } catch (error) {
